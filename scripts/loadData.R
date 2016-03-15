@@ -1,0 +1,1 @@
+gapminder <- read.table(file="data/gapminder-FiveYearData.csv",header=TRUE, sep=",")
