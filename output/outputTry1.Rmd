@@ -1,0 +1,112 @@
+---
+title: "Gapminder Exploration"
+author: "Alex Schmidt"
+date: "March 16, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo=FALSE}
+setwd('..')
+gapminder <- read.table(file="data/gapminder-FiveYearData.csv",header=TRUE, sep=",")
+library("ggplot2", lib.loc="/Library/Frameworks/R.framework/Versions/3.2/Resources/library")
+setwd('output')
+```
+
+I was tasked with investigating the gapminder data set.  This data set contains the population, GDP per capita, and life expectancy for `r length(unique(gapminder$country))` countries for `r length(unique(gapminder$year))` years (`r paste(unique(gapminder$year))`).
+ 
+With this dataset, it is possible to visualize changes over time.  Initial questions that one might ask relate to changes over time.  For example, we could visualize the progression of life expectancies or GDP per capita over time:
+
+```{r echo=FALSE}
+ggplot(data = gapminder, aes(x = year, y = lifeExp, color=continent)) +
+  geom_point() +
+  ggtitle('Life Expectancy 1952-2002 (All Countries)') + 
+  xlab('Year') + 
+  ylab('Life Expectancy (years)')
+
+ggplot(data = gapminder, aes(x = year, y = gdpPercap, color=continent)) +
+  geom_point() +
+  ggtitle('GDP per Capita 1952-2002 (All Countries)') + 
+  xlab('Year') + 
+  ylab('Life Expectancy (years)')
+```
+
+The next, perhaps obvious, relationship to investigate is that between life expectancy and GDP per capita. 
+
+```{r, echo=FALSE}
+ggplot(data = gapminder, aes(y = lifeExp, x = gdpPercap, color=continent)) +
+  geom_point() +
+  ggtitle('Life Expectancy vs. GDP') + 
+  ylab('Life Expectancy (years)') + 
+  xlab('GDP per Capita ($)')
+```
+
+Generally, there seems to be a correlation between GDP per capita and life expectancy.  However, that does not seem to hold for all the countries in Asia.  Plotting just the Asian countries, we see the following:
+
+```{r, echo=FALSE}
+source('~/Desktop/mic612reboot/test612/scripts/grabContinent.R')
+asia <- grabContinent(gapminder, continent='Asia')
+ggplot(data = asia, aes(y = lifeExp, x = gdpPercap, color=country)) +
+  geom_point() +
+  ggtitle('Life Expectancy vs. GDP') + 
+  ylab('Life Expectancy (years)') + 
+  xlab('GDP per Capita ($)') + 
+  scale_fill_discrete(name='Country', labels='a')
+```
+
+It appears that there is something going on with Kuwait.  Let's further investigate this country.  First, how did the life expectancy change over time?
+
+```{r echo=FALSE}
+source('~/Desktop/mic612reboot/test612/scripts/grabCountry.R')
+kuwait <- grabCountry(gapminder, country='Kuwait')
+ggplot(data = kuwait, aes(x = year, y = lifeExp)) +
+  geom_point() +
+  ggtitle('Life Expectancy in Kuwait 1952-2002') + 
+  xlab('Year') + 
+  ylab('Life Expectancy (years)')
+```
+
+Interesting.  What about the GDP per capita?
+
+```{r echo=FALSE}
+source('~/Desktop/mic612reboot/test612/scripts/grabCountry.R')
+kuwait <- grabCountry(gapminder, country='Kuwait')
+ggplot(data = kuwait, aes(x = year, y = gdpPercap)) +
+  geom_point() +
+  ggtitle('GDP per Capita in Kuwait 1952-2002') + 
+  xlab('Year') + 
+  ylab('GDP per Capita ($)')
+```
+
+Perhaps Kuwait's population has something to do with this.  If the population exploded but the overall GDP stayed about the same, that could explain this trend.
+
+```{r echo=FALSE}
+source('~/Desktop/mic612reboot/test612/scripts/grabCountry.R')
+kuwait <- grabCountry(gapminder, country='Kuwait')
+ggplot(data = kuwait, aes(x = year, y = pop)) +
+  geom_point() +
+  ggtitle('Population in Kuwait 1952-2002') + 
+  xlab('Year') + 
+  ylab('Population')
+```
+
+Indeed, Kuwait's population has seem massive growth.  The last thing we need to check is the overall GDP for Kuwait during these years.
+
+```{r echo=FALSE}
+source('~/Desktop/mic612reboot/test612/scripts/grabCountry.R')
+source('~/Desktop/mic612reboot/test612/scripts/calcGDP.R')
+kuwait <- grabCountry(gapminder, country='Kuwait')
+kuwait <- calcGDP(kuwait, country='Kuwait')
+ggplot(data = kuwait, aes(x = year, y = gdp)) +
+  geom_point() +
+  ggtitle('GDP in Kuwait 1952-2002') + 
+  xlab('Year') + 
+  ylab('GDP ($)')
+```
+
+As suspected, Kuwait's population grew faster than the GDP, accounting for the dip in GDP per capita.
+
+# Wow, that was fun!!!
